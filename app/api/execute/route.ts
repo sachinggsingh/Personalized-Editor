@@ -10,7 +10,7 @@ interface ExecuteRequest {
 }
 
 // Piston API configuration
-const PISTON_API_URL = process.env.PISTON_API_URL;
+const PISTON_API_URL = "https://emkc.org/api/v2/piston/execute";
 
 // Language mapping for Piston
 const LANGUAGE_MAPPING: Record<string, string> = {
