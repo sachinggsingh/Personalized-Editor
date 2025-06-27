@@ -77,14 +77,6 @@ export function SummaryDialog({
               AI-powered analysis of your code
             </SheetDescription>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </SheetHeader>
         <div className="p-6 font-mono text-sm overflow-y-auto h-[calc(100vh-120px)]">
           {isLoading ? (

@@ -1,6 +1,8 @@
 import { FileNode } from '@/types/ide';
-import { TypeScriptIcon, PythonIcon, JavaIcon, CppIcon, CIcon } from '@/components/icons/language-icons';
+import {  PythonIcon, JavaIcon, CppIcon, CIcon } from '@/components/icons/language-icons';
 import React from 'react';
+import { IoLogoJavascript } from "react-icons/io";
+
 
 export const getFileIcon = (fileName: string): React.ReactNode => {
   const extension = fileName.split('.').pop()?.toLowerCase();
@@ -14,8 +16,8 @@ export const getFileIcon = (fileName: string): React.ReactNode => {
     'hpp': React.createElement(CppIcon, { className: 'w-4 h-4' }),
     'java': React.createElement(JavaIcon, { className: 'w-4 h-4' }),
     'py': React.createElement(PythonIcon, { className: 'w-4 h-4' }),
-    'ts': React.createElement(TypeScriptIcon, { className: 'w-4 h-4' }),
-    'tsx': React.createElement(TypeScriptIcon, { className: 'w-4 h-4' }),
+    'js': React.createElement(IoLogoJavascript, { className: 'w-4 h-4' }),
+    'jsx': React.createElement(IoLogoJavascript, { className: 'w-4 h-4' }),
   };
 
   return iconMap[extension || ''] || '📄';
@@ -33,7 +35,7 @@ export const getLanguageFromFileName = (fileName: string): string => {
     'hpp': 'cpp',
     'java': 'java',
     'py': 'python',
-    'ts': 'typescript',
+    'js': 'typescript',
   };
 
   return languageMap[extension || ''] || 'plaintext';

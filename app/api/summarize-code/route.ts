@@ -1,29 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 interface SummarizeRequest {
   code: string;
   language?: string;
 }
 
+const rateLimitStore = new Map<string, { count: number; timestamp: number }>();
+const RATE_LIMIT = 3;
+const RATE_WINDOW = 60 * 1000 * 5; // 1 minute
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+
+  if (!record) {
+    rateLimitStore.set(ip, { count: 1, timestamp: now });
+    return false;
+  }
+
+  const timePassed = now - record.timestamp;
+
+  if (timePassed > RATE_WINDOW) {
+    rateLimitStore.set(ip, { count: 1, timestamp: now });
+    return false;
+  }
+
+  if (record.count >= RATE_LIMIT) {
+    return true;
+  }
+
+  record.count++;
+  return false;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as Partial<SummarizeRequest>;
-    const { code, language } = body;
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
 
-    if (!code || code.trim().length === 0) {
+    if (isRateLimited(ip)) {
       return NextResponse.json(
-        { error: "Code is required" },
-        { status: 400 }
+        { error: "Too many requests. Please wait for 5  minute before trying again." },
+        { status: 429 }
       );
     }
 
-    // Optional: Limit code size to avoid API limits
+    const body = (await request.json()) as Partial<SummarizeRequest>;
+    const code = body.code?.trim();
+    const language = body.language?.trim() || "code";
+
+    if (!code) {
+      return NextResponse.json({ error: "Code is required" }, { status: 400 });
+    }
+
     if (code.length > 5000) {
       return NextResponse.json(
-        { error: "Code is too large to summarize. Limit to 5000 characters." },
+        { error: "Code exceeds 5000 characters limit" },
         { status: 400 }
       );
     }
@@ -36,22 +69,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const lang = language?.trim() || "code";
+    const prompt = `You are a concise technical assistant. Given the following ${language} code, explain only what it does in 2-3 lines. Do not explain syntax, do not add assumptions, and do not provide suggestions.
 
-    const prompt = `Please analyze and summarize the following ${lang}:
-
-\`\`\`${lang}
+\`\`\`${language}
 ${code}
 \`\`\`
 
-Provide a concise summary that includes:
-1. What the code does
-2. Key functions/classes
-3. Main logic flow
-4. Any important patterns or techniques used
-5. Potential improvements or considerations
-
-Keep the summary clear and informative for developers.`;
+Only respond with a short explanation of what the code does.`;
 
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -59,16 +83,12 @@ Keep the summary clear and informative for developers.`;
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }]
-            }
-          ],
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.3,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 1024
+            maxOutputTokens: 512
           },
           safetySettings: [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
@@ -93,7 +113,7 @@ Keep the summary clear and informative for developers.`;
     }
 
     const result = await geminiResponse.json();
-    const summary = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const summary = result?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!summary) {
       return NextResponse.json(
@@ -106,18 +126,12 @@ Keep the summary clear and informative for developers.`;
     }
 
     return NextResponse.json(
-      {
-        success: true,
-        summary: summary.trim()
-      },
+      { success: true, summary },
       {
         status: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*", // Adjust as needed for CORS
-        }
+        headers: { "Access-Control-Allow-Origin": "*" }
       }
     );
-
   } catch (error) {
     console.error("Summarize error:", error);
     return NextResponse.json(
@@ -129,3 +143,5 @@ Keep the summary clear and informative for developers.`;
     );
   }
 }
+
+

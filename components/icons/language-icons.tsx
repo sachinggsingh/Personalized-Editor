@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SiTypescript } from "react-icons/si";
+import { IoLogoJavascript } from "react-icons/io";
 import { SiPython } from "react-icons/si";
 import { FaJava } from "react-icons/fa";
 import { TbBrandCpp } from "react-icons/tb";
@@ -14,7 +14,7 @@ export interface LanguageIconProps {
 }
 
 export const TypeScriptIcon: React.FC<LanguageIconProps> = ({ className, size = 24 }) => (
-  <SiTypescript className={className} size={size} />
+  <IoLogoJavascript className={className} size={size} />
 );
 
 export const PythonIcon: React.FC<LanguageIconProps> = ({ className, size = 24 }) => (

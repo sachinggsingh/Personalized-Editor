@@ -6,43 +6,26 @@ import React from 'react';
 export const getProjectTemplates = (): ProjectTemplate[] => [
   {
     id: 'typescript',
-    name: 'TypeScript',
-    description: 'A basic TypeScript project',
+    name: 'JavaScript',
+    description: 'A basic JavaScript project',
     icon: React.createElement(TypeScriptIcon, { className: 'w-6 h-6' }),
     files: [
       createFileNode('package.json', 'file', '', JSON.stringify({
-        name: 'typescript-project',
+        name: 'javascript-project',
         version: '0.1.0',
         scripts: {
-          build: 'tsc',
-          start: 'node dist/index.js',
-          dev: 'ts-node src/index.ts'
+          start: 'node src/index.js',
+          dev: 'nodemon src/index.js'
         },
         dependencies: {},
         devDependencies: {
-          typescript: '^5.0.2',
-          'ts-node': '^10.9.1',
-          '@types/node': '^20.6.2'
+          nodemon: '^2.0.22'
         }
-      }, null, 2)),
-      createFileNode('tsconfig.json', 'file', '', JSON.stringify({
-        compilerOptions: {
-          target: 'es2016',
-          module: 'commonjs',
-          outDir: './dist',
-          rootDir: './src',
-          strict: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          forceConsistentCasingInFileNames: true
-        },
-        include: ['src/**/*'],
-        exclude: ['node_modules']
       }, null, 2)),
       {
         ...createFileNode('src', 'folder'),
         children: [
-          createFileNode('index.ts', 'file', 'src', `console.log('Hello, TypeScript!');`)
+          createFileNode('index.js', 'file', 'src', `console.log('Hello, JavaScript!');`)
         ]
       }
     ]
